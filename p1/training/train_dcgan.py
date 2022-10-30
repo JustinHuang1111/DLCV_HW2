@@ -19,12 +19,7 @@ from tqdm.auto import tqdm
 
 # self-defined modules
 from dataset import FaceDataset, UnNormalize
-from model import (
-    DCGAN_Discriminator,
-    DCGAN_Discriminator_ML,
-    DCGAN_Generator,
-    DCGAN_Generator_ML,
-)
+from model import DCGAN_Discriminator, DCGAN_Generator
 from score import calculate_fid_given_paths, face_recog
 
 
@@ -69,13 +64,13 @@ def main(exp_name: str, model_path: str):
         "nepochs": 400,  # Number of training epochs.
         "lr": 0.0002,  # Learning rate for optimizers
         "beta1": 0.5,  # Beta1 hyperparam for Adam optimizer
-        "sample_interval": 2,  # sample every n epochs
-        "output_path": "./train_output",  # save .pth every n epochs
-        "data_dir": "../hw2_data/face/",
+        "sample": 2,  # sample every n epochs
+        "outpath": "./train_output",  # save .pth every n epochs
+        "datapath": "../hw2_data/face/",
     }
     device = torch.device("cuda" if (torch.cuda.is_available()) else "cpu")
 
-    dataset = FaceDataset(path=os.path.join(params["data_dir"], "train"), mode="train")
+    dataset = FaceDataset(path=os.path.join(params["datapath"], "train"), mode="train")
     dataloader = DataLoader(
         dataset,
         batch_size=params["batch_size"],
@@ -123,8 +118,6 @@ def main(exp_name: str, model_path: str):
     D_losses = []
     n_epochs = params["nepochs"]
 
-    print("Starting Training Loop...")
-    print("-" * 25)
     for epoch in range(n_epochs):
         progress_bar = tqdm(dataloader)
         progress_bar.set_description(f"Epoch {epoch+1}")
@@ -183,32 +176,31 @@ def main(exp_name: str, model_path: str):
 
         # ------------------- generate 1000 images and evaluate---------------------#
         n_outputs = 1000
-        if epoch % params["sample_interval"] == 0:
+        if epoch % params["sample"] == 0:
             generator.eval()
             noise = torch.randn(n_outputs, params["nz"], 1, 1, device=device)  # ML
             # noise = torch.randn(n_outputs, params["nz"], 1, 1, device=device)
             imgs = generator(noise).detach().cpu()
             for i in range(n_outputs):
                 vutils.save_image(
-                    unorm(imgs[i]), os.path.join(params["output_path"], f"{i}.png")
+                    unorm(imgs[i]), os.path.join(params["outpath"], f"{i}.png")
                 )
             # ------------------- get score ---------------------#
             print("Calculating FID...")
             fid = calculate_fid_given_paths(
-                [os.path.join(params["data_dir"], "val"), params["output_path"]],
+                [os.path.join(params["datapath"], "val"), params["outpath"]],
                 params["batch_size"],
                 device,
                 2048,
                 0,
             )
-            face_acc = face_recog(params["output_path"])
+            face_acc = face_recog(params["outpath"])
 
             # schedulerD.step(-1 * face_acc)
             # schedulerG.step(fid)
             print("FID: %f" % (fid))
             print("Face Accuracy: %.2f" % (face_acc))
 
-            # ------------------- save model depending on score ---------------------#
             if fid < best_fid:
                 print("Saved model with improved FID: %f -> %f" % (best_fid, fid))
                 best_fid = fid
