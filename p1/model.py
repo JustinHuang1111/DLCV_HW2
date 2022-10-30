@@ -5,8 +5,10 @@ import torch.nn.functional as F
 
 DIM = 64
 
-
 # https://github.com/carpedm20/BEGAN-pytorch
+
+
+##### reference #####
 # https://github.com/Natsu6767/DCGAN-PyTorch
 # Define the Generator Network
 def weights_init(m):
@@ -117,6 +119,7 @@ class DCGAN_Discriminator(nn.Module):
         return x.squeeze()
 
 
+##### Use the same generator as above #####
 class WGANGP_Generator(nn.Module):
     """
     Input shape: (batch, in_dim)
@@ -178,6 +181,7 @@ class WGANGP_Generator(nn.Module):
         return x
 
 
+##### Use Discriminator from ML 2022 fall #####
 # Discriminator
 class WGANGP_Discriminator(nn.Module):
     """
@@ -227,7 +231,7 @@ class WGANGP_Discriminator(nn.Module):
         return y
 
 
-# ----------------------- these are models from ML ----------------------------
+##### Reference ML2022 fall model #####
 class DCGAN_Generator_ML(nn.Module):
     """
     Input shape: (batch, in_dim)
@@ -297,7 +301,7 @@ class DCGAN_Discriminator_ML(nn.Module):
     """
 
     def __init__(self, in_dim=3, feat_dim=64):
-        super(DC_Discriminator_ML, self).__init__()
+        super(DCGAN_Discriminator_ML, self).__init__()
         self.l1 = nn.Sequential(
             nn.Conv2d(in_dim, feat_dim, kernel_size=5, stride=2, padding=2),
             nn.LeakyReLU(0.2),

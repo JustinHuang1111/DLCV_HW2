@@ -22,7 +22,7 @@ from tqdm.auto import tqdm
 
 # self-defined modules
 from dataset import FaceDataset, UnNormalize
-from gradient_penalty import compute_gradient_penalty
+from gp import gp
 from model import WGANGP_Discriminator, WGANGP_Generator
 from score import calculate_fid_given_paths, face_recog
 
@@ -129,20 +129,17 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: bool):
             z = Variable(torch.randn(bs, params["nz"], 1, 1)).to(device)
 
             fake_imgs = netG(z)
-            real_validity = netD(real_imgs)
-            fake_validity = netD(fake_imgs)
-            print(fake_imgs.shape)
-            gradient_penalty = compute_gradient_penalty(
-                netD, real_imgs.data, fake_imgs.data, device
-            )
+            r_logit = netD(real_imgs)
+            f_logit = netD(fake_imgs)
+            gradient_penalty = gp(netD, real_imgs.data, fake_imgs.data)
             print(
-                -torch.mean(real_validity).item(),
-                torch.mean(fake_validity).item(),
+                -torch.mean(r_logit).item(),
+                torch.mean(f_logit).item(),
                 params["lambda_gp"] * gradient_penalty.item(),
             )
             d_loss = (
-                -torch.mean(real_validity)
-                + torch.mean(fake_validity)
+                -torch.mean(r_logit)
+                + torch.mean(f_logit)
                 + params["lambda_gp"] * gradient_penalty
             )
 
@@ -162,38 +159,15 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: bool):
             if i % params["n_critic"] == 0:
                 fake_imgs = netG(z)
                 # Loss measures generator's ability to fool the discriminator
-                fake_validity = netD(fake_imgs)
-                g_loss = -torch.mean(fake_validity)
+                f_logit = netD(fake_imgs)
+                g_loss = -torch.mean(f_logit)
                 g_loss.backward()
                 optimizerG.step()
                 G_losses.append(g_loss.item())
 
         D_loss = sum(D_losses) / len(D_losses)
         G_loss = sum(G_losses) / len(G_losses)
-        # # ------------------- an epoch finish ---------------------#
-        # with open(
-        #     f"./logs/{train_name}_log.txt", "a"
-        # ) as f:
-        #     f.write(
-        #         f"[ {epoch + 1:03d}/{n_epochs:03d} ] D_loss = {D_loss:.4f}, G_loss = {G_loss:.4f}\n"
-        #     )
-        #     print(
-        #         f"[ {epoch + 1:03d}/{n_epochs:03d} ] D_loss = {D_loss:.4f}, G_loss = {G_loss:.4f}"
-        #     )
 
-        # if epoch % params["n_samples"] == 0:
-        #     netG.eval()
-        #     z = Variable(Tensor(np.random.normal(0, 1, (10, params["nz"])))).to(device)
-        #     fake_imgs = netG(z)
-        #     sample_path = "./output"
-        #     filename = os.path.join(sample_path, f"Epoch_{epoch:03d}.png")
-        #     save_image(
-        #         fake_imgs.data,
-        #         filename,
-        #         nrow=10,
-        #         normalize=True,
-        #     )
-        #     netG.train()
         # Save the model.
         if to_save:
             torch.save(

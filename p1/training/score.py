@@ -17,6 +17,26 @@ from tqdm import tqdm
 IMAGE_EXTENSIONS = {"bmp", "jpg", "jpeg", "pgm", "png", "ppm", "tif", "tiff", "webp"}
 
 
+##### from utils #####
+def face_recog(image_dir):
+    image_ids = os.listdir(image_dir)
+    total_faces = len(image_ids)
+    num_faces = 0
+    print("Start face recognition...")
+    for image_id in tqdm(image_ids):
+        image_path = os.path.join(image_dir, image_id)
+        try:  # Prevent unexpected file
+            image = face_recognition.load_image_file(image_path)
+            face_locations = face_recognition.face_locations(image, model="HOG")
+            if len(face_locations) == 1:
+                num_faces += 1
+        except:
+            total_faces -= 1
+    acc = (num_faces / total_faces) * 100
+    return acc
+
+
+##### from reference in slides (fid) #####
 class ImagePathDataset(torch.utils.data.Dataset):
     def __init__(self, files, transforms=None):
         self.files = files
@@ -214,21 +234,3 @@ def calculate_fid_given_paths(paths, batch_size, device, dims, num_workers=1):
     fid_value = calculate_frechet_distance(m1, s1, m2, s2)
 
     return fid_value
-
-
-def face_recog(image_dir):
-    image_ids = os.listdir(image_dir)
-    total_faces = len(image_ids)
-    num_faces = 0
-    print("Start face recognition...")
-    for image_id in tqdm(image_ids):
-        image_path = os.path.join(image_dir, image_id)
-        try:  # Prevent unexpected file
-            image = face_recognition.load_image_file(image_path)
-            face_locations = face_recognition.face_locations(image, model="HOG")
-            if len(face_locations) == 1:
-                num_faces += 1
-        except:
-            total_faces -= 1
-    acc = (num_faces / total_faces) * 100
-    return acc

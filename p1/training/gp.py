@@ -7,7 +7,7 @@ from torch.autograd import Variable
 Tensor = torch.FloatTensor
 
 
-def compute_gradient_penalty(D, real_samples, fake_samples, device):
+def gp(D, real_samples, fake_samples):
     # Random weight term for interpolation between real and fake samples
     alpha = torch.Tensor(np.random.random((real_samples.size(0), 1, 1, 1))).cuda()
     fake_samples = fake_samples[: len(real_samples)]
