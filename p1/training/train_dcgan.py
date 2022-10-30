@@ -47,7 +47,7 @@ def get_args():
     return parser.parse_args()
 
 
-def main(exp_name: str, model_path: str, cuda: str, to_save: int):
+def main(exp_name: str, model_path: str):
 
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
@@ -74,7 +74,6 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: int):
         "data_dir": "../hw2_data/face/",
     }
     device = torch.device("cuda" if (torch.cuda.is_available()) else "cpu")
-    print(device, " will be used.\n")
 
     dataset = FaceDataset(path=os.path.join(params["data_dir"], "train"), mode="train")
     dataloader = DataLoader(
@@ -84,30 +83,30 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: int):
         num_workers=0,
         pin_memory=True,
     )
-    if model_path:
-        state_dict = torch.load(model_path)
-        pre_params = state_dict["params"]
-        generator = DCGAN_Generator_ML().to(device)
-        discriminator = DCGAN_Discriminator_ML().to(device)
-        generator.load_state_dict(state_dict["generator"])
-        discriminator.load_state_dict(state_dict["discriminator"])
-        optimizer_D = torch.optim.Adam(discriminator.parameters())
-        optimizer_G = torch.optim.Adam(generator.parameters())
-        optimizer_D.load_state_dict(state_dict["optimizerD"])
-        optimizer_G.load_state_dict(state_dict["optimizerG"])
+    # if model_path:
+    #     state_dict = torch.load(model_path)
+    #     pre_params = state_dict["params"]
+    #     generator = DCGAN_Generator_ML().to(device)
+    #     discriminator = DCGAN_Discriminator_ML().to(device)
+    #     generator.load_state_dict(state_dict["generator"])
+    #     discriminator.load_state_dict(state_dict["discriminator"])
+    #     optimizer_D = torch.optim.Adam(discriminator.parameters())
+    #     optimizer_G = torch.optim.Adam(generator.parameters())
+    #     optimizer_D.load_state_dict(state_dict["optimizerD"])
+    #     optimizer_G.load_state_dict(state_dict["optimizerG"])
 
-    else:
-        # generator = DC_Generator(params).to(device)
-        # discriminator = DC_Discriminator(params).to(device)
-        generator = DCGAN_Generator(params).to(device)
-        discriminator = DCGAN_Discriminator(params).to(device)
+    # else:
+    # generator = DC_Generator(params).to(device)
+    # discriminator = DC_Discriminator(params).to(device)
+    generator = DCGAN_Generator(params).to(device)
+    discriminator = DCGAN_Discriminator(params).to(device)
 
-        optimizer_D = torch.optim.Adam(
-            discriminator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
-        )
-        optimizer_G = torch.optim.Adam(
-            generator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
-        )
+    optimizer_D = torch.optim.Adam(
+        discriminator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
+    )
+    optimizer_G = torch.optim.Adam(
+        generator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
+    )
     print(generator)
     print(discriminator)
     # schedulerD = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer_D, 'min')
@@ -253,4 +252,4 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: int):
 
 if __name__ == "__main__":
     args = get_args()
-    main(args.expname, args.model, args.cuda, args.save)
+    main(args.expname, args.model)
