@@ -4,3 +4,7 @@
 hw2_data/*
 *png
 *jpg
+*docx
+report
+.DS_store
+archive
