@@ -55,7 +55,7 @@ class InfDataset(Dataset):
 
 class FaceDataset(Dataset):
     def __init__(self, path, tfm=train_tfm, mode="train"):
-        super(PhotoDataset).__init__()
+        super(FaceDataset).__init__()
         self.path = path
         self.files = sorted(
             [os.path.join(path, x) for x in os.listdir(path) if x.endswith(".png")]
