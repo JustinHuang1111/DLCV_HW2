@@ -1,3 +1,4 @@
+import argparse
 import os
 from typing import Dict, Tuple
 
@@ -12,26 +13,23 @@ from PIL import Image
 from torch.utils.data import DataLoader
 from torchvision import models, transforms
 from torchvision.datasets import MNIST
+from torchvision.transforms import functional as TF
 from torchvision.utils import make_grid, save_image
 from tqdm import tqdm
-from torchvision.transforms import functional as TF
-import argparse
 
 
+##### reference: https://github.com/TeaPearce/Conditional_Diffusion_MNIST #####
 def get_args():
     parser = argparse.ArgumentParser(
         description="Evaluate test set with pretrained model."
     )
-    parser.add_argument('--train', action='store_true')
-    parser.add_argument('--no-train', dest='train', action='store_false')
+    parser.add_argument("--train", action="store_true")
+    parser.add_argument("--no-train", dest="train", action="store_false")
     parser.set_defaults(train=True)
-    parser.add_argument(
-        "--outpath", "-o", type=str, default="./", help="output path"
-    )
-    parser.add_argument(
-        "--model", "-m", type=str, default="./", help="model path"
-    )
+    parser.add_argument("--outpath", "-o", type=str, default="./", help="output path")
+    parser.add_argument("--model", "-m", type=str, default="./", help="model path")
     return parser.parse_args()
+
 
 def transform(image, image_size, aug: bool):
     image = TF.resize(image, image_size)
@@ -519,17 +517,16 @@ def valid_mnist(outpath, model):
         device=device,
         drop_prob=0.1,
     )
-    ddpm.load_state_dict(torch.load(model, map_location = "cpu"))
+    ddpm.load_state_dict(torch.load(model, map_location="cpu"))
     ddpm.to(device)
     print(ddpm)
-    
+
     # optionally load a model
     # ddpm.load_state_dict(torch.load("./data/diffusion_outputs/ddpm_unet01_mnist_9.pth"))
 
     tf = transforms.Compose(
         [transforms.ToTensor()]
     )  # mnist is already normalised 0 to 1
-
 
     # for eval, save an image of currently generated samples (top rows)
     # followed by real images (bottom rows)
@@ -543,12 +540,16 @@ def valid_mnist(outpath, model):
                     n_sample, (3, 28, 28), device, guide_w=w
                 )
 
-               
                 for idx, im in enumerate(x_gen):
-                    save_image(im, os.path.join(outpath, f"{total%10}_{total//10+1:03d}.png"))
-                    print("saved image at " + outpath + f"/{total%10}_{total//10+1:03d}.png")
+                    save_image(
+                        im, os.path.join(outpath, f"{total%10}_{total//10+1:03d}.png")
+                    )
+                    print(
+                        "saved image at "
+                        + outpath
+                        + f"/{total%10}_{total//10+1:03d}.png"
+                    )
                     total += 1
-
 
 
 if __name__ == "__main__":
@@ -560,7 +561,7 @@ if __name__ == "__main__":
     torch.manual_seed(myseed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(myseed)
-    
+
     if args.train:
         train_mnist()
     else:
