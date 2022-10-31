@@ -78,21 +78,7 @@ def main(exp_name: str, model_path: str):
         num_workers=0,
         pin_memory=True,
     )
-    # if model_path:
-    #     state_dict = torch.load(model_path)
-    #     pre_params = state_dict["params"]
-    #     generator = DCGAN_Generator_ML().to(device)
-    #     discriminator = DCGAN_Discriminator_ML().to(device)
-    #     generator.load_state_dict(state_dict["generator"])
-    #     discriminator.load_state_dict(state_dict["discriminator"])
-    #     optimizer_D = torch.optim.Adam(discriminator.parameters())
-    #     optimizer_G = torch.optim.Adam(generator.parameters())
-    #     optimizer_D.load_state_dict(state_dict["optimizerD"])
-    #     optimizer_G.load_state_dict(state_dict["optimizerG"])
 
-    # else:
-    # generator = DC_Generator(params).to(device)
-    # discriminator = DC_Discriminator(params).to(device)
     generator = DCGAN_Generator(params).to(device)
     discriminator = DCGAN_Discriminator(params).to(device)
 
