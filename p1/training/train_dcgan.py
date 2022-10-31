@@ -70,7 +70,7 @@ def main(exp_name: str, model_path: str):
     }
     device = torch.device("cuda" if (torch.cuda.is_available()) else "cpu")
 
-    dataset = FaceDataset(path=os.path.join(params["datapath"], "train"), mode="train")
+    dataset = FaceDataset(path=os.path.join(params["datapath"], "train"))
     dataloader = DataLoader(
         dataset,
         batch_size=params["batch_size"],
@@ -96,10 +96,10 @@ def main(exp_name: str, model_path: str):
     generator = DCGAN_Generator(params).to(device)
     discriminator = DCGAN_Discriminator(params).to(device)
 
-    optimizer_D = torch.optim.Adam(
+    opt_D = torch.optim.Adam(
         discriminator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
     )
-    optimizer_G = torch.optim.Adam(
+    opt_G = torch.optim.Adam(
         generator.parameters(), lr=params["lr"], betas=(params["beta1"], 0.999)
     )
     print(generator)
@@ -150,7 +150,7 @@ def main(exp_name: str, model_path: str):
             # Model backwarding
             discriminator.zero_grad()
             loss_D.backward()
-            optimizer_D.step()
+            opt_D.step()
             # ============================================
             #  Train G
             # ============================================
@@ -165,7 +165,7 @@ def main(exp_name: str, model_path: str):
             # Model backwarding
             generator.zero_grad()
             loss_G.backward()
-            optimizer_G.step()
+            opt_G.step()
 
             # Save the losses for printing.
             G_losses.append(loss_G.item())
@@ -208,8 +208,8 @@ def main(exp_name: str, model_path: str):
                     {
                         "generator": generator.state_dict(),
                         "discriminator": discriminator.state_dict(),
-                        "optimizerG": optimizer_G.state_dict(),
-                        "optimizerD": optimizer_D.state_dict(),
+                        "optimizerG": opt_G.state_dict(),
+                        "optimizerD": opt_D.state_dict(),
                         "params": params,
                     },
                     f"./checkpoints/fid_{train_name}.pth",
@@ -226,8 +226,8 @@ def main(exp_name: str, model_path: str):
                         {
                             "generator": generator.state_dict(),
                             "discriminator": discriminator.state_dict(),
-                            "optimizerG": optimizer_G.state_dict(),
-                            "optimizerD": optimizer_D.state_dict(),
+                            "optimizerG": opt_G.state_dict(),
+                            "optimizerD": opt_D.state_dict(),
                             "params": params,
                         },
                         f"./checkpoints/face_{train_name}.pth",

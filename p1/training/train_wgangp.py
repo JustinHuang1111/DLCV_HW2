@@ -71,7 +71,7 @@ def main(exp_name: str, model_path: str, cuda: str, to_save: bool):
 
     # Get the data.
     data_dir = "../hw2_data/face/"
-    dataset = FaceDataset(path=os.path.join(data_dir, "train"), mode="train")
+    dataset = FaceDataset(path=os.path.join(data_dir, "train"))
     dataloader = DataLoader(
         dataset,
         batch_size=params["batch_size"],
